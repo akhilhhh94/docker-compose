@@ -1,4 +1,4 @@
-FROM php:7.2-apache-buster
+FROM php:7.4.2-apache-buster
 
 # Surpresses debconf complaints of trying to install apt packages interactively
 # https://github.com/moby/moby/issues/4032#issuecomment-192327844
@@ -13,8 +13,7 @@ RUN apt-get -y update --fix-missing && \
     apt-get --no-install-recommends install -y apt-utils && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && \
-    apt-get install -y libxml2-dev
+
 # Install useful tools and install important libaries
 RUN apt-get -y update && \
     apt-get -y --no-install-recommends install nano wget \
@@ -46,7 +45,6 @@ RUN pecl install redis-5.1.1 && \
     docker-php-ext-enable redis
 
 # Other PHP7 Extensions
-RUN apt-get update && apt-get install -y libxslt-dev
 
 RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install pdo_sqlite && \
@@ -57,11 +55,7 @@ RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install zip && \
     docker-php-ext-install -j$(nproc) intl && \
     docker-php-ext-install mbstring && \
-    docker-php-ext-install gettext && \
-    docker-php-ext-install soap && \
-    docker-php-ext-install bcmath && \
-    docker-php-ext-install xsl && \
-    docker-php-ext-install sockets
+    docker-php-ext-install gettext
 
 # Install Freetype
 RUN apt-get -y update && \
@@ -69,6 +63,7 @@ RUN apt-get -y update && \
 libjpeg62-turbo-dev \
 libpng-dev && \
     rm -rf /var/lib/apt/lists/* && \
+    docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg && \
     docker-php-ext-install gd
 
 # Enable apache modules
@@ -76,9 +71,3 @@ RUN a2enmod rewrite headers
 
 # Cleanup
 RUN rm -rf /usr/src/*
-
-RUN chsh -s /bin/bash www-data
-
-
-RUN service apache2 restart
-

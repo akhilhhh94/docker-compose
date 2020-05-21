@@ -1,36 +1,56 @@
-version: '3.0'
+version: "3"
+
 services:
-  web:
-    build: .
+  webserver:
+    build:
+      context: ./docker/bin/php
+    container_name: ${APP_NAME}
+    restart: 'always'
     ports:
       - "80:80"
+      - "443:443"
     links:
-      - db
-    env_file:
-      - env
+      - database
     volumes:
-      - ./files-magento:/var/www/html
-      - ./conf/php.ini:/usr/local/etc/php/php.ini
-      - ./conf/vhosts:/etc/apache2/sites-enabled
-  db:
-    image: mysql:5.6.23
-    volumes:
-      - ./data-mysql:/var/lib/mysql/data
+      - ./:/var/www/html
+      - ./docker/config/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/config/vhosts:/etc/apache2/sites-enabled
+      - ./logs/apache2:/var/log/apache2
+  database:
+    build:
+      context: "./docker/bin/mysql"
+    container_name: 'database'
+    restart: 'always'
     ports:
-      - "3306:3306"
-    env_file:
-      - env
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./docker/data:/var/lib/mysql
+      - ./logs/mysql:/var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    ports:
-      - "8580:80"
+    container_name: 'phpmyadmin'
     links:
-      - db     
-volumes: 
-  db-data:
-  bind-test:
-      driver: local
-      driver_opts:
-        type: none
-        o: bind
-        device: /home/akhil/Documents/magento/bind-test
+      - database
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '8080:80'
+    volumes:
+      - /sessions
+      - ./docker/config/php.ini:/usr/local/etc/php/conf.d/php-phpmyadmin.ini
+  redis:
+    container_name: 'redis'
+    image: redis:latest
+    ports:
+      - "63790:6379"
