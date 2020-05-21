@@ -1,0 +1,36 @@
+version: '3.0'
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+    links:
+      - db
+    env_file:
+      - env
+    volumes:
+      - ./files-magento:/var/www/html
+      - ./conf/php.ini:/usr/local/etc/php/php.ini
+      - ./conf/vhosts:/etc/apache2/sites-enabled
+  db:
+    image: mysql:5.6.23
+    volumes:
+      - ./data-mysql:/var/lib/mysql/data
+    ports:
+      - "3306:3306"
+    env_file:
+      - env
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8580:80"
+    links:
+      - db     
+volumes: 
+  db-data:
+  bind-test:
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: /home/akhil/Documents/magento/bind-test
