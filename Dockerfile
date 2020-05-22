@@ -64,13 +64,14 @@ RUN docker-php-ext-install pdo_mysql && \
     docker-php-ext-install sockets
 
 # Install Freetype
-RUN apt-get -y update && \
-    apt-get --no-install-recommends install -y libfreetype6-dev \
-libjpeg62-turbo-dev \
-libpng-dev && \
-    rm -rf /var/lib/apt/lists/* && \
-    docker-php-ext-install gd
-
+RUN requirements="libmcrypt-dev libmcrypt4 libcurl3-dev libfreetype6 libcairo2-dev libjpeg62-turbo-dev libpango1.0-dev libgif-dev build-essential libfreetype6-dev libicu-dev libxslt1-dev unzip" \
+    && apt-get update \
+    && apt-get install -y $requirements \
+    && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install gd \
+    && requirementsToRemove="libmcrypt-dev libcurl3-dev  libfreetype6-dev" \
+    && apt-get purge --auto-remove -y $requirementsToRemove
 # Enable apache modules
 RUN a2enmod rewrite headers
 
@@ -81,4 +82,6 @@ RUN chsh -s /bin/bash www-data
 
 
 RUN service apache2 restart
+
+RUN cd /var/www/html && mkdir generated && chmod -R 777 /var/www/html/generated/
 
