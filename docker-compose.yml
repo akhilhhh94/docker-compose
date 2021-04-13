@@ -10,7 +10,7 @@ services:
     env_file:
       - env
     volumes:
-      - ./zaapko:/var/www/html
+      - ./projectFiles:/var/www/html
       - ./conf/php.ini:/usr/local/etc/php/php.ini
       - ./conf/vhosts:/etc/apache2/sites-enabled
   db:
