@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.9'
 services:
     php:
         # image: 'php:7.2-fpm'
@@ -6,12 +6,14 @@ services:
             context: ./docker
             dockerfile: php.Dockerfile
         container_name: ${APP_NAME:?err}-php
+        user: "${UID}:${GID}"
         volumes:
             - './app:/var/www/html'
 
     nginx:
         image: nginx:latest
         container_name: ${APP_NAME:?err}-nginx
+        user: "${UID}:${GID}"
         ports:
             - '8082:80'
             - '443:443'
@@ -41,4 +43,4 @@ services:
         ports:
             - '3306:3306'
         volumes:
-            - ${PWD}
+            - ${PWD}/mariadb:/var/lib/mysql
